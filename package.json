@@ -10,7 +10,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:rasacode.helloWorld"
+    "workspaceContains:.rasacode"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -47,5 +47,8 @@
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0",
     "@vscode/test-electron": "^2.2.0"
+  },
+  "dependencies": {
+    "yaml": "^2.1.3"
   }
 }
