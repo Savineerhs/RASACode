@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
 import { writeFileSync, readFileSync } from 'fs';
 import { recursiveRead } from './utils';
-import { parse as yamlParse } from 'yaml';
+import { parse as yamlParse, LineCounter } from 'yaml';
+import { RASADeclarationType } from './definitions';
 
-let domainData: {[index: string]: string[]};
+let domainData: {[index: string]: any};
 let trainingData: {[index: string]: any};
 
 const workspacePath = vscode.workspace.workspaceFolders![0] ?? null;
@@ -48,49 +49,73 @@ export function activate(context: vscode.ExtensionContext) {
 
 function loadResources()
 {
-	let ymlPaths = recursiveRead(workspacePath.uri.fsPath, [".vscode", "node_modules", "env"]);
+	const ymlPaths = recursiveRead(workspacePath.uri.fsPath, [".vscode", "node_modules", "env"]);
 
 	ymlPaths.forEach(function(path) 
 	{
 		const ymlFile: string = readFileSync(path, 'utf-8');
-		const ymlContent: any = yamlParse(ymlFile);
+		const ymlContent: any = yamlParse(ymlFile, { lineCounter: new LineCounter(), keepSourceTokens: true } );
 	
+		let declarationsInThisFile: any = []; 
+
 		if (ymlContent)
 		{
 			const keys: string[] = Object.keys(ymlContent);
 
-			if (keys.includes("nlu"))
-			{
-				// NLU training
-			}
-
-			if (keys.includes("rules"))
-			{
-				// Rule training
-			}
-
-			if (keys.includes("stories"))
-			{
-				// Story training
-			}
-
 			if (keys.includes("intents"))
 			{
-				// Intent declaration
+				ymlContent["intents"].forEach(function(intentDeclaration: string) {
+					declarationsInThisFile.push(
+					{
+						"text": intentDeclaration,
+						"type": RASADeclarationType.DomainIntent	
+					});
+				});
 			}
 
 			if (keys.includes("actions"))
 			{
-				// Action declaration
+				ymlContent["actions"].forEach(function(actionDeclaration: string) {
+					declarationsInThisFile.push(
+					{
+						"text": actionDeclaration,
+						"type": RASADeclarationType.DomainAction	
+					});
+				});
 			}
 
 			if (keys.includes("responses"))
 			{
-				// Response declaration
+				Object.keys(ymlContent["responses"]).forEach(function(responseDeclaration: string) 
+				{
+					declarationsInThisFile.push(
+					{
+						"text": responseDeclaration,
+						"type": RASADeclarationType.DomainResponse	
+					});
+				});
 			}
+
+			vscode.workspace.openTextDocument(vscode.Uri.file(path)).then(doc => 
+			{
+				declarationsInThisFile.forEach(function(declaration: any) 
+				{
+					let searchText = declaration["searchText"]; 
+					for (let lineIndex = 0; lineIndex < doc.lineCount; lineIndex++) 
+					{
+						const lineOfText = doc.lineAt(lineIndex);
+						if (lineOfText.text.includes(searchText))
+						{
+							const index = lineOfText.text.indexOf(searchText);
+							const range = new vscode.Range(lineIndex, index, lineIndex, index + searchText.length);
+							declaration["lineNumber"] = lineIndex; 
+							declaration["range"] = range; 
+
+						}
+					}
+				});
+			})
 		}
-
-
 	});
 }
 
