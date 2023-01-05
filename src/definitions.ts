@@ -1,6 +1,12 @@
+import { Uri } from "vscode";
+const YAML = require('yaml');
+import { readFileSync } from "fs";
+
 export enum RASADeclarationType {
-	NluTrainingIntent,
-	DomainIntent,
-	DomainAction,
-	DomainResponse
-} 
+	IntentDeclaration,
+	ActionDeclaration,
+	ResponseDeclaration, 
+	IntentInStory, 
+	ActionInStory, 
+	IntentInNLU
+}
