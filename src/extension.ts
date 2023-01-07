@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { writeFileSync, readFileSync } from 'fs';
 import { recursiveRead } from './utils';
-import { getStoryUsage, getNluUsage, getIntentDeclarations, getActionDeclarations, getResponseDeclarations } from './reading';
+import { getStoryUsage, getNluUsage, getIntentDeclarations, getActionDeclarations, getResponseDeclarations, getRuleUsage } from './reading';
 const YAML = require('yaml');
 
 import { RASADeclarationType } from './definitions';
@@ -82,6 +82,9 @@ function loadUsageData()
 						break; 
 						
 					case "rules":
+						let ruleUsages = getRuleUsage(declarationBlock, counter, path); 
+						usageData.push(...ruleUsages["intents"])
+						usageData.push(...ruleUsages["actions"])	
 						break; 
 
 					case "nlu":
@@ -138,6 +141,7 @@ function scanDeclarations()
 		switch (declaration["type"]) 
 		{
 			case RASADeclarationType.IntentInStory:
+			case RASADeclarationType.IntentInRule: 
 				if (!intentsInDomain.includes(declaration["declaration"]))
 				{
 					const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
@@ -148,6 +152,7 @@ function scanDeclarations()
 
 
 			case RASADeclarationType.ActionInStory:
+			case RASADeclarationType.ActionInRule:
 				if (!actionsInDomain.includes(declaration["declaration"]))
 				{
 					const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
@@ -165,6 +170,7 @@ function scanDeclarations()
 					addDiagnostic(diagnostic, declaration["file"]); 
 				}
 				break;
+
 		}
 	});
 

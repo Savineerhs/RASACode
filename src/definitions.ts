@@ -7,6 +7,8 @@ export enum RASADeclarationType {
 	ActionDeclaration,
 	ResponseDeclaration, 
 	IntentInStory, 
-	ActionInStory, 
+	ActionInStory,
+	IntentInRule, 
+	ActionInRule, 
 	IntentInNLU
 }
