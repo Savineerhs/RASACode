@@ -4,12 +4,12 @@ import { recursiveRead } from './utils';
 import { getStoryUsage, getNluUsage, getIntentDeclarations, getActionDeclarations, getResponseDeclarations, getRuleUsage } from './reading';
 const YAML = require('yaml');
 
-import { RASADeclarationType } from './definitions';
+import { RASADeclarationType, TrainingData, Domain } from './definitions';
 import { LineCounter } from 'yaml';
 
 let diagnosticsCollection: vscode.DiagnosticCollection;
-let domainData: {[index: string]: any};
-let usageData: any[];
+let domain: Domain;
+let trainingData: TrainingData;
 
 const workspacePath = vscode.workspace.workspaceFolders![0] ?? null;
 
@@ -30,13 +30,8 @@ export function activate(context: vscode.ExtensionContext) {
 		writeFileSync(workspacePath.uri.fsPath + '/.rasacode', fileContent);
 	});
 
-	
-	usageData = [];
-	domainData = {
-		"intents": [], 
-		"actions": [], 
-		"responses": []
-	};
+	trainingData = new TrainingData(); 
+	domain = new Domain();
 
 	diagnosticsCollection = vscode.languages.createDiagnosticCollection("rasa");
 	
@@ -77,37 +72,43 @@ function loadUsageData()
 					// == Training usages ==
 					case "stories":
 						let storyUsages = getStoryUsage(declarationBlock, counter, path); 
-						usageData.push(...storyUsages["intents"])
-						usageData.push(...storyUsages["actions"])
+						trainingData.intentsUsedInStories.push(...storyUsages["intents"]);
+						trainingData.actionsUsedInStories.push(...storyUsages["actions"]);
+						trainingData.knownContributors.indexOf(path) === -1 ? trainingData.knownContributors.push(path):{};
 						break; 
 						
 					case "rules":
 						let ruleUsages = getRuleUsage(declarationBlock, counter, path); 
-						usageData.push(...ruleUsages["intents"])
-						usageData.push(...ruleUsages["actions"])	
+						trainingData.intentsUsedInRules.push(...ruleUsages["intents"]);
+						trainingData.actionsUsedInRules.push(...ruleUsages["actions"]);
+						trainingData.knownContributors.indexOf(path) === -1 ? trainingData.knownContributors.push(path):{};	
 						break; 
 
 					case "nlu":
 						let nluUsage = getNluUsage(declarationBlock, counter, path); 
-						usageData.push(...nluUsage)
+						trainingData.intentsTrainedInNLU.push(...nluUsage);
+						trainingData.knownContributors.indexOf(path) === -1 ? trainingData.knownContributors.push(path):{}; 
 						break; 
 						
 					// == Domain declarations == 
 					case "intents": 
 						let declaredIntents = getIntentDeclarations(declarationBlock, counter, path); 
-						domainData["intents"].push(...declaredIntents);
+						domain.declaredIntents.push(...declaredIntents);
+						domain.knownContributors.indexOf(path) === -1 ? domain.knownContributors.push(path):{}; 
 						break;
 
 
 					case "actions": 
 						let declaredActions = getActionDeclarations(declarationBlock, counter, path); 
-						domainData["actions"].push(...declaredActions);
+						domain.declaredActions.push(...declaredActions);
+						domain.knownContributors.indexOf(path) === -1 ? domain.knownContributors.push(path):{}; 
 						break; 
 
 
 					case "responses": 
 						let declaredResponses = getResponseDeclarations(declarationBlock, counter, path); 
-						domainData["responses"].push(...declaredResponses); 
+						domain.declaredActions.push(...declaredResponses); 
+						domain.knownContributors.indexOf(path) === -1 ? domain.knownContributors.push(path):{}; 
 						break; 
 
 
@@ -130,47 +131,56 @@ function scanDeclarations()
 		foundDiagnostics[resourceFile].push(diagnostic);
 	}
 
-	const intentsInDomain: string[] = domainData["intents"].map(function(intent: any) {return intent["declaration"];})
-	const actionsInDomain: string[] = domainData["actions"].map(function(action: any) {return action["declaration"];})
-	actionsInDomain.push(...domainData["responses"].map(function(response: any) {return response["declaration"];}))
-	
-	
+	const intentsInDomain: string[] = domain.listIntents();
+	const actionsInDomain: string[] = domain.listActions(); 
 
-	usageData.forEach(function(declaration: any)  
+	trainingData.intentsUsedInStories.forEach(function(declaration: any) 
 	{
-		switch (declaration["type"]) 
+		if (!intentsInDomain.includes(declaration["declaration"]))
 		{
-			case RASADeclarationType.IntentInStory:
-			case RASADeclarationType.IntentInRule: 
-				if (!intentsInDomain.includes(declaration["declaration"]))
-				{
-					const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
-					const diagnostic = new vscode.Diagnostic(range, "Intent " + declaration["declaration"] + " has not been delcared in the domain yet.", vscode.DiagnosticSeverity.Error); 
-					addDiagnostic(diagnostic, declaration["file"]); 
-				}
-				break; 
+			const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
+			const diagnostic = new vscode.Diagnostic(range, "Intent " + declaration["declaration"] + " has not been delcared in the domain yet.", vscode.DiagnosticSeverity.Error); 
+			addDiagnostic(diagnostic, declaration["file"]); 
+		}
+	});
 
+	trainingData.intentsUsedInRules.forEach(function(declaration: any) 
+	{
+		if (!intentsInDomain.includes(declaration["declaration"]))
+		{
+			const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
+			const diagnostic = new vscode.Diagnostic(range, "Intent " + declaration["declaration"] + " has not been delcared in the domain yet.", vscode.DiagnosticSeverity.Error); 
+			addDiagnostic(diagnostic, declaration["file"]); 
+		}
+	});
 
-			case RASADeclarationType.ActionInStory:
-			case RASADeclarationType.ActionInRule:
-				if (!actionsInDomain.includes(declaration["declaration"]))
-				{
-					const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
-					const diagnostic = new vscode.Diagnostic(range, "Action " + declaration["declaration"] + " has not been delcared in the domain yet.", vscode.DiagnosticSeverity.Error); 
-					addDiagnostic(diagnostic, declaration["file"]); 
-				}
-				break;
+	trainingData.actionsUsedInStories.forEach(function(declaration: any) 
+	{
+		if (!actionsInDomain.includes(declaration["declaration"]))
+		{
+			const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
+			const diagnostic = new vscode.Diagnostic(range, "Action " + declaration["declaration"] + " has not been delcared in the domain yet.", vscode.DiagnosticSeverity.Error); 
+			addDiagnostic(diagnostic, declaration["file"]); 
+		}
+	});
 
-			
-			case RASADeclarationType.IntentInNLU:
-				if (!intentsInDomain.includes(declaration["declaration"]))
-				{
-					const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
-					const diagnostic = new vscode.Diagnostic(range, "Intent " + declaration["declaration"] + " has not been delcared in the domain yet.", vscode.DiagnosticSeverity.Error); 
-					addDiagnostic(diagnostic, declaration["file"]); 
-				}
-				break;
+	trainingData.actionsUsedInRules.forEach(function(declaration: any) 
+	{
+		if (!actionsInDomain.includes(declaration["declaration"]))
+		{
+			const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
+			const diagnostic = new vscode.Diagnostic(range, "Action " + declaration["declaration"] + " has not been delcared in the domain yet.", vscode.DiagnosticSeverity.Error); 
+			addDiagnostic(diagnostic, declaration["file"]); 
+		}
+	});
 
+	trainingData.intentsTrainedInNLU.forEach(function(declaration: any) 
+	{
+		if (!intentsInDomain.includes(declaration["declaration"]))
+		{
+			const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
+			const diagnostic = new vscode.Diagnostic(range, "Intent " + declaration["declaration"] + " has not been delcared in the domain yet.", vscode.DiagnosticSeverity.Error); 
+			addDiagnostic(diagnostic, declaration["file"]); 
 		}
 	});
 
