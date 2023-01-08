@@ -3,7 +3,7 @@ import { writeFileSync } from 'fs';
 import { recursiveRead } from './utils';
 import { TrainingData, Domain } from './definitions';
 import { readAll } from './reading';
-import { scanDeclarations } from './scanning';
+import { scanDeclarations, scanDomain } from './scanning';
 
 let diagnosticsCollection: vscode.DiagnosticCollection;
 let domain: Domain;
@@ -35,7 +35,8 @@ export function activate(context: vscode.ExtensionContext) {
 	
 	initialLoad();
 	scanDeclarations(domain, trainingData, diagnosticsCollection);
-	
+	scanDomain(domain, trainingData, diagnosticsCollection); 
+
 	context.subscriptions.push(disposable);
 }
 

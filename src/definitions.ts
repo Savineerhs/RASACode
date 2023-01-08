@@ -70,6 +70,35 @@ export class Domain {
 export class TrainingData {
 	contributions: any = {}; 
 
+	public get usedIntents()
+	{
+		let intents: any[] = [];
+		Object.keys(this.contributions).forEach(contribution => {
+			intents.push(...this.contributions[contribution]["stories"]["intents"].map(function(i: any) {return i["declaration"]})); 
+			intents.push(...this.contributions[contribution]["rules"]["intents"].map(function(i: any) {return i["declaration"]}));
+		});
+		return intents;
+	}
+
+	public get usedActions()
+	{
+		let actions: any[] = [];
+		Object.keys(this.contributions).forEach(contribution => {
+			actions.push(...this.contributions[contribution]["stories"]["actions"].map(function(i: any) {return i["declaration"]})); 
+			actions.push(...this.contributions[contribution]["rules"]["actions"].map(function(i: any) {return i["declaration"]})); 
+		});
+		return actions;
+	}
+
+	public get trainedIntents()
+	{
+		let intents: any[] = [];
+		Object.keys(this.contributions).forEach(contribution => {
+			intents.push(...this.contributions[contribution]["nlu"].map(function(i: any) {return i["declaration"]})); 
+		});
+		return intents;
+	}
+
 	addContribution(sourceFile: string, entry: any)
 	{
 		if (!Object.keys(this.contributions).includes(sourceFile))
