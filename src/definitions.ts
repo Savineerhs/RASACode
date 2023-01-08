@@ -14,46 +14,106 @@ export enum RASADeclarationType {
 }
 
 export class Domain {
-	knownContributors: string[] = [];
-	declaredIntents: any[] = [];
-	declaredActions: any[] = [];
+	contributions: any = {}; 
 
-	listIntents()
+	public get availableIntents()
 	{
-		return this.declaredIntents.map(intent => {return intent["declaration"]});
+		let intents: any[] = [];
+		Object.keys(this.contributions).forEach(contribution => {
+			let intentsInContributingFile = this.contributions[contribution]["intents"].map(function(i: any) {return i["declaration"]});
+			intents.push(...intentsInContributingFile); 
+		});
+		return intents;
 	}
 
-	listActions()
+	public get availableActions()
 	{
-		return this.declaredActions.map(action => {return action["declaration"]});
+		let actions: any[] = [];
+		Object.keys(this.contributions).forEach(contribution => {
+			let actionsInContributingFile = this.contributions[contribution]["actions"].map(function(i: any) {return i["declaration"]});
+			actions.push(...actionsInContributingFile); 
+		});
+		return actions;
+	}
+
+	addContribution(sourceFile: string, entry: any)
+	{
+		if (!Object.keys(this.contributions).includes(sourceFile))
+			this.contributions[sourceFile] = {
+				"intents": [], 
+				"actions": []
+			};
+
+		switch(entry["type"])
+		{
+			case RASADeclarationType.IntentDeclaration:
+				this.contributions[sourceFile]["intents"].push(entry);
+				break; 
+
+			case RASADeclarationType.ResponseDeclaration: 
+			case RASADeclarationType.ActionDeclaration: 
+				this.contributions[sourceFile]["actions"].push(entry);
+				break; 
+
+		}	
+	}
+
+	resetContributor(sourceFile: string)
+	{
+		if (Object.keys(this.contributions).includes(sourceFile))
+		{
+			this.contributions[sourceFile] = {};
+		}
 	}
 }
 
 export class TrainingData {
-	knownContributors: string[] = [];
+	contributions: any = {}; 
 
-	intentsUsedInStories: any[] = [];
-	intentsUsedInRules: any[] = [];
-	intentsTrainedInNLU: any[] = [];
-	actionsUsedInStories: any[] = [];
-	actionsUsedInRules: any[] = [];
-
-	listUsedIntents()
+	addContribution(sourceFile: string, entry: any)
 	{
-		let i = this.intentsUsedInStories.map(intent => {return intent["declaration"]});
-		i.push(...this.intentsUsedInRules.map(intent => {return intent["declaration"]})) 
-		return i;
+		if (!Object.keys(this.contributions).includes(sourceFile))
+			this.contributions[sourceFile] = {
+				"nlu": [], 
+				"stories": {
+					"intents": [], 
+					"actions": []
+				}, 
+				"rules": {
+					"intents": [], 
+					"actions": []
+				}
+			};
+
+		switch(entry["type"])
+		{
+			case RASADeclarationType.IntentInRule:
+				this.contributions[sourceFile]["rules"]["intents"].push(entry); 
+				break; 
+
+			case RASADeclarationType.IntentInStory:
+				this.contributions[sourceFile]["stories"]["intents"].push(entry);
+				break; 
+
+			case RASADeclarationType.ActionInRule:
+				this.contributions[sourceFile]["rules"]["actions"].push(entry);
+				break; 
+
+			case RASADeclarationType.ActionInStory:
+				this.contributions[sourceFile]["stories"]["actions"].push(entry); 
+				break; 
+
+			case RASADeclarationType.IntentInNLU: 
+				this.contributions[sourceFile]["nlu"].push(entry);  
+				break; 
+		}	
 	}
 
-	listUsedActions()
+	resetContributor(sourceFile: string)
 	{
-		let i = this.actionsUsedInStories.map(action => {return action["declaration"]});
-		i.push(...this.actionsUsedInRules.map(action => {return action["declaration"]}))
-		return i
-	}
-	
-	listUsedNLU()
-	{
-		return this.intentsTrainedInNLU.map(intent => {return intent["declaration"]});
+		if (Object.keys(this.contributions).includes(sourceFile))
+		{
+			this.contributions[sourceFile] = {};
+		}
 	}
 }
