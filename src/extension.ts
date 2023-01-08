@@ -36,7 +36,9 @@ export function activate(context: vscode.ExtensionContext) {
 	diagnosticsCollection = vscode.languages.createDiagnosticCollection("rasa");
 	
 	loadUsageData();
+
 	scanDeclarations();
+	scanDomain(); 
 	
 	context.subscriptions.push(disposable);
 }
@@ -139,7 +141,7 @@ function scanDeclarations()
 		if (!intentsInDomain.includes(declaration["declaration"]))
 		{
 			const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
-			const diagnostic = new vscode.Diagnostic(range, "Intent " + declaration["declaration"] + " has not been delcared in the domain yet.", vscode.DiagnosticSeverity.Error); 
+			const diagnostic = new vscode.Diagnostic(range, "Intent " + declaration["declaration"] + " has not been declared in the domain yet.", vscode.DiagnosticSeverity.Error); 
 			addDiagnostic(diagnostic, declaration["file"]); 
 		}
 	});
@@ -149,7 +151,7 @@ function scanDeclarations()
 		if (!intentsInDomain.includes(declaration["declaration"]))
 		{
 			const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
-			const diagnostic = new vscode.Diagnostic(range, "Intent " + declaration["declaration"] + " has not been delcared in the domain yet.", vscode.DiagnosticSeverity.Error); 
+			const diagnostic = new vscode.Diagnostic(range, "Intent " + declaration["declaration"] + " has not been declared in the domain yet.", vscode.DiagnosticSeverity.Error); 
 			addDiagnostic(diagnostic, declaration["file"]); 
 		}
 	});
@@ -159,7 +161,7 @@ function scanDeclarations()
 		if (!actionsInDomain.includes(declaration["declaration"]))
 		{
 			const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
-			const diagnostic = new vscode.Diagnostic(range, "Action " + declaration["declaration"] + " has not been delcared in the domain yet.", vscode.DiagnosticSeverity.Error); 
+			const diagnostic = new vscode.Diagnostic(range, "Action " + declaration["declaration"] + " has not been declared in the domain yet.", vscode.DiagnosticSeverity.Error); 
 			addDiagnostic(diagnostic, declaration["file"]); 
 		}
 	});
@@ -169,7 +171,7 @@ function scanDeclarations()
 		if (!actionsInDomain.includes(declaration["declaration"]))
 		{
 			const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
-			const diagnostic = new vscode.Diagnostic(range, "Action " + declaration["declaration"] + " has not been delcared in the domain yet.", vscode.DiagnosticSeverity.Error); 
+			const diagnostic = new vscode.Diagnostic(range, "Action " + declaration["declaration"] + " has not been declared in the domain yet.", vscode.DiagnosticSeverity.Error); 
 			addDiagnostic(diagnostic, declaration["file"]); 
 		}
 	});
@@ -179,10 +181,57 @@ function scanDeclarations()
 		if (!intentsInDomain.includes(declaration["declaration"]))
 		{
 			const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
-			const diagnostic = new vscode.Diagnostic(range, "Intent " + declaration["declaration"] + " has not been delcared in the domain yet.", vscode.DiagnosticSeverity.Error); 
+			const diagnostic = new vscode.Diagnostic(range, "Intent " + declaration["declaration"] + " has not been declared in the domain yet.", vscode.DiagnosticSeverity.Error); 
 			addDiagnostic(diagnostic, declaration["file"]); 
 		}
 	});
+
+	Object.keys(foundDiagnostics).forEach(resourceFile => {
+		diagnosticsCollection.set(vscode.Uri.file(resourceFile), foundDiagnostics[resourceFile]); 
+	});
+}
+
+
+function scanDomain()
+{
+	// if config wants domain-based diagnostics
+	let foundDiagnostics: any = {}; 
+	function addDiagnostic(diagnostic: vscode.Diagnostic, resourceFile: string)
+	{
+		if (!Object.keys(foundDiagnostics).includes(resourceFile))
+			foundDiagnostics[resourceFile] = [];
+
+		foundDiagnostics[resourceFile].push(diagnostic);
+	}
+
+	const intentsUsedInStoriesOrRules = trainingData.listUsedIntents();
+	const actionsUsedInStoriesOrRules = trainingData.listUsedActions();
+	const intentsUsedInNLU = trainingData.listUsedNLU(); 
+
+	domain.declaredIntents.forEach(declaration => {
+		if (!intentsUsedInStoriesOrRules.includes(declaration["declaration"]))
+		{
+			const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
+			const diagnostic = new vscode.Diagnostic(range, "Declared intent " + declaration["declaration"] + " isn't being used in any story or rule.", vscode.DiagnosticSeverity.Warning); 
+			addDiagnostic(diagnostic, declaration["file"]); 
+		}
+
+		if (!intentsUsedInNLU.includes(declaration["declaration"]))
+		{
+			const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
+			const diagnostic = new vscode.Diagnostic(range, "Declared intent " + declaration["declaration"] + " has no NLU training data associated with it.", vscode.DiagnosticSeverity.Warning); 
+			addDiagnostic(diagnostic, declaration["file"]); 
+		}
+	})
+
+	domain.declaredActions.forEach(declaration => {
+		if (!actionsUsedInStoriesOrRules.includes(declaration["declaration"]))
+		{
+			const range = new vscode.Range(declaration["position"]["line"], declaration["position"]["col"], declaration["position"]["line"], declaration["position"]["col"] + declaration["length"]);
+			const diagnostic = new vscode.Diagnostic(range, "Declared action " + declaration["declaration"] + " isn't being used in any story or rule.", vscode.DiagnosticSeverity.Warning); 
+			addDiagnostic(diagnostic, declaration["file"]); 
+		}
+	})
 
 	Object.keys(foundDiagnostics).forEach(resourceFile => {
 		diagnosticsCollection.set(vscode.Uri.file(resourceFile), foundDiagnostics[resourceFile]); 

@@ -138,7 +138,7 @@ export function getIntentDeclarations(data: any, counter: LineCounter, filePath:
     
     intentsDeclaredInFile.forEach(function(intent: any) 
     {
-        const position = counter.linePos(intent["range"][0]);
+        const position = getUsablePosition(intent["range"][0], counter);
 
         let o = {
             "file": filePath,
@@ -163,7 +163,7 @@ export function getActionDeclarations(data: any, counter: LineCounter, filePath:
     
     actionsDeclaredInFile.forEach(function(action: any) 
     {
-        const position = counter.linePos(action["range"][0]);
+        const position = getUsablePosition(action["range"][0], counter);
 
         let o = {
             "file": filePath,
@@ -188,7 +188,7 @@ export function getResponseDeclarations(data: any, counter: LineCounter, filePat
     responsesDeclaredInFile.forEach(function(response: any) 
     {
         let responseName: string = response["key"].toString();
-        const position = counter.linePos(response["key"]["range"][0]);
+        const position = getUsablePosition(response["key"]["range"][0], counter);
 
         let o = {
             "file": filePath,
