@@ -36,7 +36,12 @@ export class Domain {
 		return actions;
 	}
 
-	addContribution(sourceFile: string, entry: any)
+	public get filePaths()
+	{
+		return Object.keys(this.contributions); 
+	}
+
+	addContribution(sourceFile: string, entry: any|null)
 	{
 		if (!Object.keys(this.contributions).includes(sourceFile))
 			this.contributions[sourceFile] = {
@@ -44,25 +49,31 @@ export class Domain {
 				"actions": []
 			};
 
-		switch(entry["type"])
-		{
-			case RASADeclarationType.IntentDeclaration:
-				this.contributions[sourceFile]["intents"].push(entry);
-				break; 
+		if (entry != null)
+		{	
+			switch(entry["type"])
+			{
+				case RASADeclarationType.IntentDeclaration:
+					this.contributions[sourceFile]["intents"].push(entry);
+					break; 
 
-			case RASADeclarationType.ResponseDeclaration: 
-			case RASADeclarationType.ActionDeclaration: 
-				this.contributions[sourceFile]["actions"].push(entry);
-				break; 
+				case RASADeclarationType.ResponseDeclaration: 
+				case RASADeclarationType.ActionDeclaration: 
+					this.contributions[sourceFile]["actions"].push(entry);
+					break; 
 
-		}	
+			}	
+		}
 	}
 
 	resetContributor(sourceFile: string)
 	{
 		if (Object.keys(this.contributions).includes(sourceFile))
 		{
-			this.contributions[sourceFile] = {};
+			this.contributions[sourceFile] = {
+				"intents": [], 
+				"actions": []
+			};
 		}
 	}
 }
@@ -99,7 +110,12 @@ export class TrainingData {
 		return intents;
 	}
 
-	addContribution(sourceFile: string, entry: any)
+	public get filePaths()
+	{
+		return Object.keys(this.contributions); 
+	}
+
+	addContribution(sourceFile: string, entry: any|null)
 	{
 		if (!Object.keys(this.contributions).includes(sourceFile))
 			this.contributions[sourceFile] = {
@@ -114,35 +130,48 @@ export class TrainingData {
 				}
 			};
 
-		switch(entry["type"])
+		if (entry != null)
 		{
-			case RASADeclarationType.IntentInRule:
-				this.contributions[sourceFile]["rules"]["intents"].push(entry); 
-				break; 
+			switch(entry["type"])
+			{
+				case RASADeclarationType.IntentInRule:
+					this.contributions[sourceFile]["rules"]["intents"].push(entry); 
+					break; 
 
-			case RASADeclarationType.IntentInStory:
-				this.contributions[sourceFile]["stories"]["intents"].push(entry);
-				break; 
+				case RASADeclarationType.IntentInStory:
+					this.contributions[sourceFile]["stories"]["intents"].push(entry);
+					break; 
 
-			case RASADeclarationType.ActionInRule:
-				this.contributions[sourceFile]["rules"]["actions"].push(entry);
-				break; 
+				case RASADeclarationType.ActionInRule:
+					this.contributions[sourceFile]["rules"]["actions"].push(entry);
+					break; 
 
-			case RASADeclarationType.ActionInStory:
-				this.contributions[sourceFile]["stories"]["actions"].push(entry); 
-				break; 
+				case RASADeclarationType.ActionInStory:
+					this.contributions[sourceFile]["stories"]["actions"].push(entry); 
+					break; 
 
-			case RASADeclarationType.IntentInNLU: 
-				this.contributions[sourceFile]["nlu"].push(entry);  
-				break; 
-		}	
+				case RASADeclarationType.IntentInNLU: 
+					this.contributions[sourceFile]["nlu"].push(entry);  
+					break; 
+			}	
+		}
 	}
 
 	resetContributor(sourceFile: string)
 	{
 		if (Object.keys(this.contributions).includes(sourceFile))
 		{
-			this.contributions[sourceFile] = {};
+			this.contributions[sourceFile] = {
+				"nlu": [], 
+				"stories": {
+					"intents": [], 
+					"actions": []
+				}, 
+				"rules": {
+					"intents": [], 
+					"actions": []
+				}
+			};
 		}
 	}
 }

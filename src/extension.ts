@@ -3,7 +3,7 @@ import { writeFileSync } from 'fs';
 import { recursiveRead } from './utils';
 import { TrainingData, Domain } from './definitions';
 import { readAll } from './reading';
-import { scanDeclarations, scanDomain } from './scanning';
+import { scanAllTrainingDataFiles, scanAllDomainFiles, checkForRescan } from './scanning';
 
 let diagnosticsCollection: vscode.DiagnosticCollection;
 let domain: Domain;
@@ -33,17 +33,20 @@ export function activate(context: vscode.ExtensionContext) {
 
 	diagnosticsCollection = vscode.languages.createDiagnosticCollection("rasacode");
 	
-	initialLoad();
-	scanDeclarations(domain, trainingData, diagnosticsCollection);
-	scanDomain(domain, trainingData, diagnosticsCollection); 
+
+	initializeProject();
+	
 
 	context.subscriptions.push(disposable);
+	context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(document => checkForRescan(document, domain, trainingData, diagnosticsCollection)));
 }
 
-function initialLoad()
+function initializeProject()
 {
 	const ymlPaths = recursiveRead(workspacePath.uri.fsPath, [".vscode", "node_modules", "env"]);
 	readAll(ymlPaths, domain, trainingData);
+	scanAllTrainingDataFiles(domain, trainingData, diagnosticsCollection);
+	scanAllDomainFiles(domain, trainingData, diagnosticsCollection); 
 }
 
 

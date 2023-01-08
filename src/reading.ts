@@ -8,63 +8,69 @@ export function readAll(ymlPaths: string[], domain: Domain, trainingData: Traini
 {
     ymlPaths.forEach(function(path) 
 	{
-		let counter = new LineCounter();		
-		const ymlContent = 
-			YAML.parseDocument(
-				readFileSync(path, 'utf-8'),
-				{ keepCstNodes: true, 
-				lineCounter: counter}
-			)["contents"]
-		
-        if (ymlContent)
-        {
-            const declarationBlocksInDocument = Object.values(ymlContent["items"]);
-            declarationBlocksInDocument.forEach(function(declarationBlock: any) 
-            {
-                const declarationBlockName = declarationBlock["key"].toString(); 
-                
-                switch (declarationBlockName)
-                {
-                    // == Training declarations ==
-                    case "stories":
-                        let storyDeclarations = getStoryDeclarations(declarationBlock, counter, path); 
-                        storyDeclarations.forEach(declaration => {trainingData.addContribution(path, declaration)});
-                        break; 
-                        
-                    case "rules":
-                        let ruleDeclarations = getRuleDeclarations(declarationBlock, counter, path); 
-                        ruleDeclarations.forEach(declaration => {trainingData.addContribution(path, declaration)});
-                        break; 
-
-                    case "nlu":
-                        let nluDeclarations = getNluDeclarations(declarationBlock, counter, path); 
-                        nluDeclarations.forEach(declaration => {trainingData.addContribution(path, declaration)});
-                        break; 
-                        
-                    // == Domain declarations == 
-                    case "intents": 
-                        let declaredIntents = getIntentDeclarations(declarationBlock, counter, path);  
-                        declaredIntents.forEach(intent => {domain.addContribution(path, intent)});
-                        break;
-
-
-                    case "actions": 
-                        let declaredActions = getActionDeclarations(declarationBlock, counter, path); 
-                        declaredActions.forEach(action => {domain.addContribution(path, action)});
-                        break; 
-
-
-                    case "responses": 
-                        let declaredResponses = getResponseDeclarations(declarationBlock, counter, path); 
-                        declaredResponses.forEach(response => {domain.addContribution(path, response)});
-                        break; 
-
-                    default: 
-                        break; 
-                }
-            })
-        }
+		readYML(path, domain, trainingData);
 	});
+}
+
+
+export function readYML(path: string, domain: Domain, trainingData: TrainingData)
+{
+    let counter = new LineCounter();		
+    const ymlContent = 
+        YAML.parseDocument(
+            readFileSync(path, 'utf-8'),
+            { keepCstNodes: true, 
+            lineCounter: counter}
+        )["contents"]
+    
+    if (ymlContent)
+    {
+        const declarationBlocksInDocument = Object.values(ymlContent["items"]);
+        declarationBlocksInDocument.forEach(function(declarationBlock: any) 
+        {
+            const declarationBlockName = declarationBlock["key"].toString(); 
+            
+            switch (declarationBlockName)
+            {
+                // == Training declarations ==
+                case "stories":
+                    let storyDeclarations = getStoryDeclarations(declarationBlock, counter, path); 
+                    storyDeclarations.forEach(declaration => {trainingData.addContribution(path, declaration)});
+                    break; 
+                    
+                case "rules":
+                    let ruleDeclarations = getRuleDeclarations(declarationBlock, counter, path); 
+                    ruleDeclarations.forEach(declaration => {trainingData.addContribution(path, declaration)});
+                    break; 
+
+                case "nlu":
+                    let nluDeclarations = getNluDeclarations(declarationBlock, counter, path); 
+                    nluDeclarations.forEach(declaration => {trainingData.addContribution(path, declaration)});
+                    break; 
+                    
+                // == Domain declarations == 
+                case "intents": 
+                    let declaredIntents = getIntentDeclarations(declarationBlock, counter, path);  
+                    declaredIntents.forEach(intent => {domain.addContribution(path, intent)});
+                    break;
+
+
+                case "actions": 
+                    let declaredActions = getActionDeclarations(declarationBlock, counter, path); 
+                    declaredActions.forEach(action => {domain.addContribution(path, action)});
+                    break; 
+
+
+                case "responses": 
+                    let declaredResponses = getResponseDeclarations(declarationBlock, counter, path); 
+                    declaredResponses.forEach(response => {domain.addContribution(path, response)});
+                    break; 
+
+                default: 
+                    break; 
+            }
+        })
+    }
 }
 
 
@@ -268,8 +274,26 @@ function getResponseDeclarations(data: any, counter: LineCounter, filePath: stri
 function getUsablePosition(stepStartOffset: number, counter: LineCounter)
 {
     let position = counter.linePos(stepStartOffset); 
+    // YAML indices are 1-position, while VSCode needs 0-position indices for diagnostics
     position["col"]--; 
     position["line"]--;
 
     return position
 }
+
+export function getKeysInDocument(path: string)
+{
+    const ymlContent = 
+			YAML.parseDocument(
+				readFileSync(path, 'utf-8'),
+				{ keepCstNodes: true}
+			)["contents"]
+		
+    if (ymlContent)
+        return Object.values(ymlContent["items"]).map(function(item: any) {return item["key"].toString()});
+    
+
+    return []; 
+
+}
+
