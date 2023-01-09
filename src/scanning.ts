@@ -131,7 +131,6 @@ export function checkForRescan(document :vscode.TextDocument, domain: Domain, tr
 	
 	if (keys.includes("stories") || keys.includes("rules") || keys.includes("nlu"))
 	{
-		
 		if (!trainingData.filePaths.includes(documentPath))
 		{
 			trainingData.addContribution(documentPath, null); 

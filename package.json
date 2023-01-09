@@ -19,6 +19,57 @@
         "command": "rasacode.helloWorld",
         "title": "Hello World"
       }
+    ], 
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "rasacode",
+          "title": "RASACode",
+          "icon": "media/rasa.png"
+        }
+      ]
+    }, 
+    "views": {
+      "rasacode": [
+        {
+          "id": "rasacode-domain-tree",
+          "name": "Domain"
+        }, 
+        {
+          "id": "rasacode-trainingData-tree",
+          "name": "Training Data"
+        }, 
+        {
+          "id": "rasacode-toolbox",
+          "name": "Toolbox"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "rasacode-domain-tree",
+        "contents": "RASACode not initialized in current directory.", 
+        "when": "workbenchState == workspace || workbenchState == folder"
+      }, 
+      {
+        "view": "rasacode-domain-tree",
+        "contents": "Open a folder to detect an existing RASA project, or initialize a new one.", 
+        "when": "workbenchState == empty"
+      }, 
+      {
+        "view": "rasacode-trainingData-tree",
+        "contents": "RASACode not initialized in current directory.", 
+        "when": "workbenchState == workspace || workbenchState == folder"
+      }, 
+      {
+        "view": "rasacode-trainingData-tree",
+        "contents": "Open a folder to detect an existing RASA project, or initialize a new one.", 
+        "when": "workbenchState == empty"
+      }, 
+      {
+        "view": "rasacode-toolbox",
+        "contents": "\n[Initialize RASACode](command:rasacode.init)"
+      }
     ]
   },
   "scripts": {

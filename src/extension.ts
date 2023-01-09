@@ -4,10 +4,13 @@ import { recursiveRead } from './utils';
 import { TrainingData, Domain } from './definitions';
 import { readAll } from './reading';
 import { scanAllTrainingDataFiles, scanAllDomainFiles, checkForRescan } from './scanning';
+import { DomainTreeProvider } from './trees/domainTree';
 
 let diagnosticsCollection: vscode.DiagnosticCollection;
-let domain: Domain;
-let trainingData: TrainingData;
+let treeProvider: DomainTreeProvider;
+
+export let domain: Domain;
+export let trainingData: TrainingData;
 
 const workspacePath = vscode.workspace.workspaceFolders![0] ?? null;
 
@@ -47,6 +50,12 @@ function initializeProject()
 	readAll(ymlPaths, domain, trainingData);
 	scanAllTrainingDataFiles(domain, trainingData, diagnosticsCollection);
 	scanAllDomainFiles(domain, trainingData, diagnosticsCollection); 
+
+	treeProvider = new DomainTreeProvider(domain)
+	vscode.window.registerTreeDataProvider(
+		'rasacode-domain-tree',
+		treeProvider
+	);
 }
 
 

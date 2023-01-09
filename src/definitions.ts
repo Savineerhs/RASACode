@@ -1,4 +1,4 @@
-import { Uri } from "vscode";
+import { TreeItem, TreeItemCollapsibleState, ThemeIcon } from "vscode";
 const YAML = require('yaml');
 import { readFileSync } from "fs";
 
@@ -175,3 +175,16 @@ export class TrainingData {
 		}
 	}
 }
+
+export class DomainTreeItem extends TreeItem
+{
+	type: string;
+	constructor(label: string, collapsibleState: TreeItemCollapsibleState, type: string, icon: ThemeIcon) 
+	{
+		super(label, collapsibleState);
+		this.type = type; 
+		this.iconPath = icon;
+	}
+}
+
+
