@@ -5,9 +5,12 @@ import { TrainingData, Domain } from './definitions';
 import { readAll } from './reading';
 import { scanAllTrainingDataFiles, scanAllDomainFiles, checkForRescan } from './scanning';
 import { DomainTreeProvider } from './trees/domainTree';
+import { TrainingDataTreeProvider } from './trees/trainingDataTree';
 
 let diagnosticsCollection: vscode.DiagnosticCollection;
-let treeProvider: DomainTreeProvider;
+let domainTreeProvider: DomainTreeProvider;
+let trainingDataTreeProvider: TrainingDataTreeProvider;
+
 
 export let domain: Domain;
 export let trainingData: TrainingData;
@@ -41,7 +44,15 @@ export function activate(context: vscode.ExtensionContext) {
 	
 
 	context.subscriptions.push(disposable);
-	context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(document => checkForRescan(document, domain, trainingData, diagnosticsCollection)));
+	context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(document => 
+		checkForRescan(
+			document, 
+			domain, 
+			trainingData, 
+			diagnosticsCollection,
+			domainTreeProvider,
+			trainingDataTreeProvider
+		)));
 }
 
 function initializeProject()
@@ -51,11 +62,17 @@ function initializeProject()
 	scanAllTrainingDataFiles(domain, trainingData, diagnosticsCollection);
 	scanAllDomainFiles(domain, trainingData, diagnosticsCollection); 
 
-	treeProvider = new DomainTreeProvider(domain)
+	domainTreeProvider = new DomainTreeProvider(domain)
 	vscode.window.registerTreeDataProvider(
 		'rasacode-domain-tree',
-		treeProvider
+		domainTreeProvider
 	);
+
+	trainingDataTreeProvider = new TrainingDataTreeProvider(trainingData)
+	vscode.window.registerTreeDataProvider(
+		'rasacode-trainingData-tree', 
+		trainingDataTreeProvider
+	)
 }
 
 

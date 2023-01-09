@@ -2,15 +2,20 @@ import { TreeItem, TreeItemCollapsibleState, ThemeIcon } from "vscode";
 const YAML = require('yaml');
 import { readFileSync } from "fs";
 
+
+
+
 export enum RASADeclarationType {
-	IntentDeclaration,
-	ActionDeclaration,
-	ResponseDeclaration, 
-	IntentInStory, 
-	ActionInStory,
-	IntentInRule, 
-	ActionInRule, 
-	IntentInNLU
+    IntentDeclaration,
+    ActionDeclaration,
+    ResponseDeclaration,
+    IntentInStory,
+    ActionInStory,
+    IntentInRule,
+    ActionInRule,
+    IntentInNLU,
+    RuleLocation,
+    StoryLocation
 }
 
 export class Domain {
@@ -121,10 +126,12 @@ export class TrainingData {
 			this.contributions[sourceFile] = {
 				"nlu": [], 
 				"stories": {
+					"locations": [],
 					"intents": [], 
 					"actions": []
 				}, 
 				"rules": {
+					"locations": [],
 					"intents": [], 
 					"actions": []
 				}
@@ -153,6 +160,14 @@ export class TrainingData {
 				case RASADeclarationType.IntentInNLU: 
 					this.contributions[sourceFile]["nlu"].push(entry);  
 					break; 
+
+				case RASADeclarationType.StoryLocation: 
+					this.contributions[sourceFile]["stories"]["locations"].push(entry); 
+					break;
+			
+				case RASADeclarationType.RuleLocation: 
+					this.contributions[sourceFile]["rules"]["locations"].push(entry); 
+					break;
 			}	
 		}
 	}
@@ -176,14 +191,13 @@ export class TrainingData {
 	}
 }
 
-export class DomainTreeItem extends TreeItem
+export class RASATreeItem extends TreeItem
 {
 	type: string;
-	constructor(label: string, collapsibleState: TreeItemCollapsibleState, type: string, icon: ThemeIcon) 
+	constructor(label: string, collapsibleState: TreeItemCollapsibleState, type: string) 
 	{
 		super(label, collapsibleState);
-		this.type = type; 
-		this.iconPath = icon;
+		this.type = type;
 	}
 }
 

@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { Domain, TrainingData } from './definitions';
 import { getKeysInDocument, readYML,  } from './reading';
+import { DomainTreeProvider } from './trees/domainTree';
+import { TrainingDataTreeProvider } from './trees/trainingDataTree';
 
 export function scanAllDomainFiles(domain: Domain, trainingData: TrainingData, diagnosticCollection: vscode.DiagnosticCollection)
 {
@@ -124,7 +126,15 @@ export function scanTrainingDataFile(contributionFile: string, domain: Domain, t
 }
 
 
-export function checkForRescan(document :vscode.TextDocument, domain: Domain, trainingData: TrainingData, diagnosticCollection: vscode.DiagnosticCollection)
+export function checkForRescan(
+	document :vscode.TextDocument, 
+	domain: Domain, 
+	trainingData: TrainingData, 
+	diagnosticCollection: vscode.DiagnosticCollection,
+	domainTree: DomainTreeProvider, 
+	trainingDataTree: TrainingDataTreeProvider
+)
+
 {
 	const documentPath: string = document.uri.fsPath;
 	const keys = getKeysInDocument(documentPath);
@@ -139,6 +149,7 @@ export function checkForRescan(document :vscode.TextDocument, domain: Domain, tr
 		readYML(documentPath, domain, trainingData);
 		scanTrainingDataFile(documentPath, domain, trainingData, diagnosticCollection);
 		scanAllDomainFiles(domain, trainingData, diagnosticCollection);
+		trainingDataTree.refresh();
 	} 
 
 	else if (keys.includes("intents") || keys.includes("actions") || keys.includes("responses"))
@@ -151,5 +162,6 @@ export function checkForRescan(document :vscode.TextDocument, domain: Domain, tr
 		readYML(documentPath, domain, trainingData);
 		scanDomainFile(documentPath, domain, trainingData, diagnosticCollection); 
 		scanAllTrainingDataFiles(domain, trainingData, diagnosticCollection); 
+		domainTree.refresh();
 	}
 }
