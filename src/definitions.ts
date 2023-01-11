@@ -53,22 +53,29 @@ export class Domain {
 				"intents": [], 
 				"actions": []
 			};
+		
+		switch(entry["type"])
+		{
+			case RASADeclarationType.IntentDeclaration:
+				this.contributions[sourceFile]["intents"].push(entry);
+				break; 
 
-		if (entry != null)
-		{	
-			switch(entry["type"])
-			{
-				case RASADeclarationType.IntentDeclaration:
-					this.contributions[sourceFile]["intents"].push(entry);
-					break; 
+			case RASADeclarationType.ResponseDeclaration: 
+			case RASADeclarationType.ActionDeclaration: 
+				this.contributions[sourceFile]["actions"].push(entry);
+				break; 
 
-				case RASADeclarationType.ResponseDeclaration: 
-				case RASADeclarationType.ActionDeclaration: 
-					this.contributions[sourceFile]["actions"].push(entry);
-					break; 
+		}	
+		
+	}
 
-			}	
-		}
+	addContributor(sourceFile: string)
+	{
+		if (!Object.keys(this.contributions).includes(sourceFile))
+			this.contributions[sourceFile] = {
+				"intents": [], 
+				"actions": []
+			};
 	}
 
 	resetContributor(sourceFile: string)
@@ -80,6 +87,11 @@ export class Domain {
 				"actions": []
 			};
 		}
+	}
+
+	removeContributor(sourceFile: string)
+	{
+		delete this.contributions[sourceFile];
 	}
 }
 
@@ -137,39 +149,56 @@ export class TrainingData {
 				}
 			};
 
-		if (entry != null)
+		switch(entry["type"])
 		{
-			switch(entry["type"])
-			{
-				case RASADeclarationType.IntentInRule:
-					this.contributions[sourceFile]["rules"]["intents"].push(entry); 
-					break; 
+			case RASADeclarationType.IntentInRule:
+				this.contributions[sourceFile]["rules"]["intents"].push(entry); 
+				break; 
 
-				case RASADeclarationType.IntentInStory:
-					this.contributions[sourceFile]["stories"]["intents"].push(entry);
-					break; 
+			case RASADeclarationType.IntentInStory:
+				this.contributions[sourceFile]["stories"]["intents"].push(entry);
+				break; 
 
-				case RASADeclarationType.ActionInRule:
-					this.contributions[sourceFile]["rules"]["actions"].push(entry);
-					break; 
+			case RASADeclarationType.ActionInRule:
+				this.contributions[sourceFile]["rules"]["actions"].push(entry);
+				break; 
 
-				case RASADeclarationType.ActionInStory:
-					this.contributions[sourceFile]["stories"]["actions"].push(entry); 
-					break; 
+			case RASADeclarationType.ActionInStory:
+				this.contributions[sourceFile]["stories"]["actions"].push(entry); 
+				break; 
 
-				case RASADeclarationType.IntentInNLU: 
-					this.contributions[sourceFile]["nlu"].push(entry);  
-					break; 
+			case RASADeclarationType.IntentInNLU: 
+				this.contributions[sourceFile]["nlu"].push(entry);  
+				break; 
 
-				case RASADeclarationType.StoryLocation: 
-					this.contributions[sourceFile]["stories"]["locations"].push(entry); 
-					break;
-			
-				case RASADeclarationType.RuleLocation: 
-					this.contributions[sourceFile]["rules"]["locations"].push(entry); 
-					break;
-			}	
+			case RASADeclarationType.StoryLocation: 
+				this.contributions[sourceFile]["stories"]["locations"].push(entry); 
+				break;
+		
+			case RASADeclarationType.RuleLocation: 
+				this.contributions[sourceFile]["rules"]["locations"].push(entry); 
+				break;
+		
 		}
+	}
+
+	addContributor(sourceFile: string)
+	{
+		if (!Object.keys(this.contributions).includes(sourceFile))
+			this.contributions[sourceFile] = 
+			{
+				"nlu": [], 
+				"stories": {
+					"locations": [],
+					"intents": [], 
+					"actions": []
+				}, 
+				"rules": {
+					"locations": [],
+					"intents": [], 
+					"actions": []
+				}
+			};
 	}
 
 	resetContributor(sourceFile: string)
@@ -188,6 +217,11 @@ export class TrainingData {
 				}
 			};
 		}
+	}
+
+	removeContributor(sourceFile: string)
+	{
+		delete this.contributions[sourceFile];
 	}
 }
 

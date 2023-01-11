@@ -3,7 +3,7 @@ import { writeFileSync } from 'fs';
 import { recursiveRead } from './utils';
 import { TrainingData, Domain } from './definitions';
 import { readAll } from './reading';
-import { scanAllTrainingDataFiles, scanAllDomainFiles, checkForRescan } from './scanning';
+import { scanAllTrainingDataFiles, scanAllDomainFiles, checkForRescan, scanAfterDeletion } from './scanning';
 import { DomainTreeProvider } from './trees/domainTree';
 import { TrainingDataTreeProvider } from './trees/trainingDataTree';
 
@@ -53,6 +53,27 @@ export function activate(context: vscode.ExtensionContext) {
 			domainTreeProvider,
 			trainingDataTreeProvider
 		)));
+
+	context.subscriptions.push(vscode.workspace.onDidCreateFiles(files => 
+		{
+			let filePaths = files["files"];
+			filePaths.forEach(file => 
+			{
+				vscode.workspace.openTextDocument(file).then(doc => 
+				{
+					checkForRescan(doc, domain, trainingData, diagnosticsCollection, domainTreeProvider, trainingDataTreeProvider);
+				})
+			});
+		}))
+
+	context.subscriptions.push(vscode.workspace.onDidDeleteFiles(files => 
+		{
+			let filePaths = files["files"];
+			filePaths.forEach(file => 
+			{
+				scanAfterDeletion(file.fsPath, domain, trainingData, diagnosticsCollection, domainTreeProvider, trainingDataTreeProvider);
+			})
+		}))
 }
 
 function initializeProject()

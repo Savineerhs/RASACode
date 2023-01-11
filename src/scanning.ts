@@ -132,36 +132,73 @@ export function checkForRescan(
 	trainingData: TrainingData, 
 	diagnosticCollection: vscode.DiagnosticCollection,
 	domainTree: DomainTreeProvider, 
-	trainingDataTree: TrainingDataTreeProvider
-)
-
+	trainingDataTree: TrainingDataTreeProvider)
 {
-	const documentPath: string = document.uri.fsPath;
-	const keys = getKeysInDocument(documentPath);
-	
-	if (keys.includes("stories") || keys.includes("rules") || keys.includes("nlu"))
+	function updateTrainingData() 
 	{
-		if (!trainingData.filePaths.includes(documentPath))
-		{
-			trainingData.addContribution(documentPath, null); 
-		}			
-		trainingData.resetContributor(documentPath);
 		readYML(documentPath, domain, trainingData);
 		scanTrainingDataFile(documentPath, domain, trainingData, diagnosticCollection);
 		scanAllDomainFiles(domain, trainingData, diagnosticCollection);
 		trainingDataTree.refresh();
-	} 
+	}
 
-	else if (keys.includes("intents") || keys.includes("actions") || keys.includes("responses"))
+	function updateDomain()
 	{
-		if (!domain.filePaths.includes(documentPath))
-		{
-			domain.addContribution(documentPath, null); 
-		}	
-		domain.resetContributor(documentPath);
 		readYML(documentPath, domain, trainingData);
 		scanDomainFile(documentPath, domain, trainingData, diagnosticCollection); 
 		scanAllTrainingDataFiles(domain, trainingData, diagnosticCollection); 
 		domainTree.refresh();
+	}
+
+
+	const documentPath: string = document.uri.fsPath;
+	const keys = getKeysInDocument(documentPath);
+	
+	if (trainingData.filePaths.includes(documentPath))
+	{				
+		trainingData.resetContributor(documentPath);
+		updateTrainingData();
+	}
+
+	else if (domain.filePaths.includes(documentPath))
+	{
+		domain.resetContributor(documentPath);
+		updateDomain();
+	}
+
+	else if (keys.includes("stories") || keys.includes("rules") || keys.includes("nlu"))
+	{
+		trainingData.addContributor(documentPath); 				
+		updateTrainingData();
+	} 
+
+	else if (keys.includes("intents") || keys.includes("actions") || keys.includes("responses"))
+	{
+		domain.addContributor(documentPath); 
+		updateTrainingData();
+	}
+}
+
+
+export function scanAfterDeletion(
+	documentPath :string, 
+	domain: Domain, 
+	trainingData: TrainingData, 
+	diagnosticCollection: vscode.DiagnosticCollection,
+	domainTree: DomainTreeProvider, 
+	trainingDataTree: TrainingDataTreeProvider)
+{
+	if (trainingData.filePaths.includes(documentPath))
+	{				
+		trainingData.resetContributor(documentPath);
+		scanAllDomainFiles(domain, trainingData, diagnosticCollection);
+		domainTree.refresh();
+	}
+
+	else if (domain.filePaths.includes(documentPath))
+	{
+		domain.resetContributor(documentPath);
+		scanAllTrainingDataFiles(domain, trainingData, diagnosticCollection);
+		trainingDataTree.refresh();
 	}
 }
