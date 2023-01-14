@@ -73,10 +73,6 @@
         {
           "id": "rasacode-trainingData-tree",
           "name": "Training Data"
-        }, 
-        {
-          "id": "rasacode-toolbox",
-          "name": "Toolbox"
         }
       ]
     },
@@ -88,7 +84,7 @@
       }, 
       {
         "view": "rasacode-domain-tree",
-        "contents": "Open a folder to detect an existing RASA project, or initialize a new one.", 
+        "contents": "Open a folder to detect an existing RASA project, or initialize a new one.\n[Initialize RASACode](command:rasacode.init)", 
         "when": "workbenchState == empty"
       }, 
       {
@@ -98,12 +94,8 @@
       }, 
       {
         "view": "rasacode-trainingData-tree",
-        "contents": "Open a folder to detect an existing RASA project, or initialize a new one.", 
+        "contents": "Open a folder to detect an existing RASA project, or initialize a new one.\n[Initialize RASACode](command:rasacode.init)", 
         "when": "workbenchState == empty"
-      }, 
-      {
-        "view": "rasacode-toolbox",
-        "contents": "\n[Initialize RASACode](command:rasacode.init)"
       }
     ]
   },

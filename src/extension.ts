@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { writeFileSync } from 'fs';
+import { writeFileSync, existsSync } from 'fs';
 import { recursiveRead } from './utils';
 import { TrainingData, Domain } from './definitions';
 import { readAll } from './reading';
@@ -18,6 +18,18 @@ export let trainingData: TrainingData;
 const workspacePath = vscode.workspace.workspaceFolders![0] ?? null;
 
 export function activate(context: vscode.ExtensionContext) {
+	let rasacodeFileLocation = workspacePath.uri.fsPath + '/.rasacode';
+
+	trainingData = new TrainingData(); 
+	domain = new Domain();
+
+	diagnosticsCollection = vscode.languages.createDiagnosticCollection("rasacode");
+	
+	if (existsSync(rasacodeFileLocation)) 
+	{
+		initializeProject();
+	}
+	
 	let disposable = vscode.commands.registerCommand('rasacode.init', () => {
 		vscode.window.showInformationMessage('Initializing RASACode...');
 		
@@ -32,19 +44,30 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		writeFileSync(workspacePath.uri.fsPath + '/.rasacode', fileContent);
+		initializeProject();
 	});
 
-	trainingData = new TrainingData(); 
-	domain = new Domain();
+	function initializeProject()
+	{
+		const ymlPaths = recursiveRead(workspacePath.uri.fsPath, [".vscode", "node_modules", "env"]);
+		readAll(ymlPaths, domain, trainingData);
+		scanAllTrainingDataFiles(domain, trainingData, diagnosticsCollection);
+		scanAllDomainFiles(domain, trainingData, diagnosticsCollection); 
 
-	diagnosticsCollection = vscode.languages.createDiagnosticCollection("rasacode");
-	
+		domainTreeProvider = new DomainTreeProvider(domain)
+		vscode.window.registerTreeDataProvider(
+			'rasacode-domain-tree',
+			domainTreeProvider
+		);
 
-	initializeProject();
-	
+		trainingDataTreeProvider = new TrainingDataTreeProvider(trainingData)
+		vscode.window.registerTreeDataProvider(
+			'rasacode-trainingData-tree', 
+			trainingDataTreeProvider
+		)
 
-	context.subscriptions.push(disposable);
-	context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(document => 
+		context.subscriptions.push(disposable);
+		context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(document => 
 		checkForRescan(
 			document, 
 			domain, 
@@ -54,7 +77,7 @@ export function activate(context: vscode.ExtensionContext) {
 			trainingDataTreeProvider
 		)));
 
-	context.subscriptions.push(vscode.workspace.onDidCreateFiles(files => 
+		context.subscriptions.push(vscode.workspace.onDidCreateFiles(files => 
 		{
 			let filePaths = files["files"];
 			filePaths.forEach(file => 
@@ -66,7 +89,7 @@ export function activate(context: vscode.ExtensionContext) {
 			});
 		}))
 
-	context.subscriptions.push(vscode.workspace.onDidDeleteFiles(files => 
+		context.subscriptions.push(vscode.workspace.onDidDeleteFiles(files => 
 		{
 			let filePaths = files["files"];
 			filePaths.forEach(file => 
@@ -74,28 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
 				scanAfterDeletion(file.fsPath, domain, trainingData, diagnosticsCollection, domainTreeProvider, trainingDataTreeProvider);
 			})
 		}))
+	}
 }
-
-function initializeProject()
-{
-	const ymlPaths = recursiveRead(workspacePath.uri.fsPath, [".vscode", "node_modules", "env"]);
-	readAll(ymlPaths, domain, trainingData);
-	scanAllTrainingDataFiles(domain, trainingData, diagnosticsCollection);
-	scanAllDomainFiles(domain, trainingData, diagnosticsCollection); 
-
-	domainTreeProvider = new DomainTreeProvider(domain)
-	vscode.window.registerTreeDataProvider(
-		'rasacode-domain-tree',
-		domainTreeProvider
-	);
-
-	trainingDataTreeProvider = new TrainingDataTreeProvider(trainingData)
-	vscode.window.registerTreeDataProvider(
-		'rasacode-trainingData-tree', 
-		trainingDataTreeProvider
-	)
-}
-
-
 
 export function deactivate() {}
