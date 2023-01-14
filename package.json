@@ -14,6 +14,41 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "RASACode", 
+      "properties": {
+        "rasacode.warnings.showWarningsForUnusedIntents": {
+          "type": "boolean", 
+          "default": true, 
+          "description": "Show warnings for intents in domain that are not being used in any story or rule."
+        }, 
+        "rasacode.warnings.showWarningsForUnusedActions": {
+          "type": "boolean", 
+          "default": true, 
+          "description": "Show warnings for actions in domain that are not being used in any story or rule."
+        }, 
+        "rasacode.warnings.showWarningsForUntrainedIntents": {
+          "type": "boolean", 
+          "default": true, 
+          "description": "Show warnings for intents in domain that don't have training data."
+        },
+        "rasacode.errors.showErrorsForUndeclaredIntents": {
+          "type": "boolean", 
+          "default": true, 
+          "description": "Show warnings for intents used in a story or rule that haven't been declared in the domain yet."
+        },
+        "rasacode.errors.showErrorsForUndeclaredActions": {
+          "type": "boolean", 
+          "default": true, 
+          "description": "Show errors for actions used in a story or rule that haven't been declared in the domain yet."
+        }, 
+        "rasacode.errors.showErrorsForUndeclaredNLU": {
+          "type": "boolean", 
+          "default": true, 
+          "description": "Show errors for intents trained in NLU that haven't been declared in the domain yet."
+        }
+      }
+    },
     "commands": [
       {
         "command": "rasacode.helloWorld",
@@ -25,7 +60,7 @@
         {
           "id": "rasacode",
           "title": "RASACode",
-          "icon": "media/rasa.png"
+          "icon": "media/activity-icon.svg"
         }
       ]
     }, 
