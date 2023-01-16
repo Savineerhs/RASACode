@@ -1,71 +1,34 @@
-# rasacode README
+# RASACode
 
-This is the README for your extension "rasacode". After writing up a brief description, we recommend including the following sections.
+RASACode is a VSCode extension designed to make creating RASA projects easier. It is currently in a very early beta, so bug reports and feature requests are very much welcome.
+
+RASACode requires initialization to run. In the root directory of your RASA project, open the **RASACode** panel from the activity bar and click on "Initialize RASACode". Alternatively, you can initialize RASACode through the command palette.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+#### Real-time Error Checking
 
-For example if there is an image subfolder under your extension project workspace:
+RASACode checks your project for RASA-related errors in the domain and training data. 
 
-\!\[feature X\]\(images/feature-x.png\)
+![](image/README/1673861746875.png)
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+
+#### Quick Access to all Project Elements
+
+RASACode also prepares and maintains an easy-to-access project tree that lets you view and jump to the elements of your project at a glance.
+
+![](image/README/1673861921047.png)
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+While RASACode runs on its own, it does not provide syntax highlighting for YML files. Installing a YML linter is highly recommended.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
+Every error and warning currently available in RASACode can be turned on or off based on your preferences. Please check the RASACode extension settings to learn more.
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.1
 
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Initial early public beta release.

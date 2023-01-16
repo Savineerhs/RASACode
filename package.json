@@ -2,6 +2,10 @@
   "name": "rasacode",
   "displayName": "RASACode",
   "description": "An extension for making RASA chatbot development easier.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Savineerhs/RASACode"
+  },
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.74.0"
@@ -51,8 +55,8 @@
     },
     "commands": [
       {
-        "command": "rasacode.helloWorld",
-        "title": "Hello World"
+        "command": "rasacode.init",
+        "title": "Initialize RASACode in this directory."
       }
     ], 
     "viewsContainers": {

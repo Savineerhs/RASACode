@@ -22,7 +22,7 @@ export function readYML(path: string, domain: Domain, trainingData: TrainingData
             { keepCstNodes: true, 
             lineCounter: counter}
         )["contents"]
-    
+        
     if (ymlContent)
     {
         const declarationBlocksInDocument = Object.values(ymlContent["items"]);

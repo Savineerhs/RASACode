@@ -3,7 +3,7 @@ import { writeFileSync, existsSync } from 'fs';
 import { recursiveRead } from './utils';
 import { TrainingData, Domain } from './definitions';
 import { readAll } from './reading';
-import { scanAllTrainingDataFiles, scanAllDomainFiles, checkForRescan, scanAfterDeletion } from './scanning';
+import { scanAllTrainingDataFiles, scanAllDomainFiles, scanAfterSave, scanAfterDeletion } from './scanning';
 import { DomainTreeProvider } from './trees/domainTree';
 import { TrainingDataTreeProvider } from './trees/trainingDataTree';
 
@@ -19,17 +19,6 @@ const workspacePath = vscode.workspace.workspaceFolders![0] ?? null;
 
 export function activate(context: vscode.ExtensionContext) {
 	let rasacodeFileLocation = workspacePath.uri.fsPath + '/.rasacode';
-
-	trainingData = new TrainingData(); 
-	domain = new Domain();
-
-	diagnosticsCollection = vscode.languages.createDiagnosticCollection("rasacode");
-	
-	if (existsSync(rasacodeFileLocation)) 
-	{
-		initializeProject();
-	}
-	
 	let disposable = vscode.commands.registerCommand('rasacode.init', () => {
 		vscode.window.showInformationMessage('Initializing RASACode...');
 		
@@ -46,6 +35,19 @@ export function activate(context: vscode.ExtensionContext) {
 		writeFileSync(workspacePath.uri.fsPath + '/.rasacode', fileContent);
 		initializeProject();
 	});
+
+	
+	trainingData = new TrainingData(); 
+	domain = new Domain();
+
+	diagnosticsCollection = vscode.languages.createDiagnosticCollection("rasacode");
+	
+	if (existsSync(rasacodeFileLocation)) 
+	{
+		initializeProject();
+	}
+	
+	
 
 	function initializeProject()
 	{
@@ -68,7 +70,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		context.subscriptions.push(disposable);
 		context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(document => 
-		checkForRescan(
+		scanAfterSave(
 			document, 
 			domain, 
 			trainingData, 
@@ -84,7 +86,7 @@ export function activate(context: vscode.ExtensionContext) {
 			{
 				vscode.workspace.openTextDocument(file).then(doc => 
 				{
-					checkForRescan(doc, domain, trainingData, diagnosticsCollection, domainTreeProvider, trainingDataTreeProvider);
+					scanAfterSave(doc, domain, trainingData, diagnosticsCollection, domainTreeProvider, trainingDataTreeProvider);
 				})
 			});
 		}))

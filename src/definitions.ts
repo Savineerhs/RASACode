@@ -74,7 +74,7 @@ export class Domain {
 		if (!Object.keys(this.contributions).includes(sourceFile))
 			this.contributions[sourceFile] = {
 				"intents": [], 
-				"actions": []
+				"actions": [], 
 			};
 	}
 
@@ -84,7 +84,7 @@ export class Domain {
 		{
 			this.contributions[sourceFile] = {
 				"intents": [], 
-				"actions": []
+				"actions": [], 
 			};
 		}
 	}
@@ -209,11 +209,13 @@ export class TrainingData {
 				"nlu": [], 
 				"stories": {
 					"intents": [], 
-					"actions": []
+					"actions": [], 
+					"locations": []
 				}, 
 				"rules": {
 					"intents": [], 
-					"actions": []
+					"actions": [], 
+					"locations": []
 				}
 			};
 		}

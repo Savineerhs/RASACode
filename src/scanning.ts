@@ -139,7 +139,7 @@ export function scanTrainingDataFile(contributionFile: string, domain: Domain, t
 }
 
 
-export function checkForRescan(
+export function scanAfterSave(
 	document :vscode.TextDocument, 
 	domain: Domain, 
 	trainingData: TrainingData, 
@@ -188,7 +188,7 @@ export function checkForRescan(
 	else if (keys.includes("intents") || keys.includes("actions") || keys.includes("responses"))
 	{
 		domain.addContributor(documentPath); 
-		updateTrainingData();
+		updateDomain();
 	}
 }
 
